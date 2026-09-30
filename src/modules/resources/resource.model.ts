@@ -1,0 +1,4 @@
+import { Schema, model, models } from "mongoose";
+export interface CourseResourceDocument { _id: Schema.Types.ObjectId; courseId: Schema.Types.ObjectId; lessonId: Schema.Types.ObjectId; name: string; storageKey: string; fileUrl: string; mimeType: string; sizeBytes: number; createdAt: Date; }
+const resourceSchema = new Schema<CourseResourceDocument>({ courseId: { type: Schema.Types.ObjectId, required: true, ref: "Course", index: true }, lessonId: { type: Schema.Types.ObjectId, required: true }, name: { type: String, required: true, trim: true, maxlength: 180 }, storageKey: { type: String, required: true, unique: true }, fileUrl: { type: String, required: true }, mimeType: { type: String, required: true }, sizeBytes: { type: Number, required: true, min: 1 } }, { timestamps: { createdAt: true, updatedAt: false }, collection: "course_resources" });
+export const CourseResource = models.CourseResource || model<CourseResourceDocument>("CourseResource", resourceSchema);

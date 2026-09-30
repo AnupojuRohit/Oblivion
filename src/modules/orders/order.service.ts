@@ -1,0 +1,101 @@
+import { Types } from "mongoose";
+import { AppError } from "@/lib/errors/app-error";
+import { connectToDatabase } from "@/infrastructure/mongodb/connection";
+import { createRazorpayOrder, refundRazorpayPayment, verifyRazorpayPaymentSignature, verifyRazorpayWebhookSignature } from "@/infrastructure/razorpay/razorpay.client";
+import { requireRazorpayEnv } from "@/lib/env";
+import { Course } from "@/modules/courses/course.model";
+import type { PublicUser } from "@/modules/auth/auth.types";
+import { enrollmentService } from "@/modules/enrollments/enrollment.service";
+import { Order } from "./order.model";
+import { PaymentEvent } from "./payment-event.model";
+
+const sanitizeOrder = (order: { _id: { toString(): string }; userId: { toString(): string }; courseId: { toString(): string }; instructorId: { toString(): string }; courseTitleSnapshot: string; priceSnapshot: number; currencySnapshot: string; amount: number; status: string; razorpayOrderId?: string; razorpayPaymentId?: string; createdAt: Date; paidAt?: Date; refundedAt?: Date; }) => ({ id: order._id.toString(), userId: order.userId.toString(), courseId: order.courseId.toString(), instructorId: order.instructorId.toString(), courseTitleSnapshot: order.courseTitleSnapshot, priceSnapshot: order.priceSnapshot, currencySnapshot: order.currencySnapshot, amount: order.amount, status: order.status, razorpayOrderId: order.razorpayOrderId, razorpayPaymentId: order.razorpayPaymentId, createdAt: order.createdAt, paidAt: order.paidAt, refundedAt: order.refundedAt });
+
+const findPublishedCourse = async (courseId: string) => {
+  if (!Types.ObjectId.isValid(courseId)) throw new AppError("COURSE_NOT_FOUND", "Course not found", 404);
+  const course = await Course.findById(courseId);
+  if (!course || course.status !== "PUBLISHED") throw new AppError("COURSE_NOT_FOUND", "Course not found", 404);
+  return course;
+};
+
+const getOrderCheckout = (order: { razorpayOrderId: string; amount: number; currencySnapshot: string }, user: PublicUser, courseTitle: string) => ({ keyId: requireRazorpayEnv().keyId, orderId: order.razorpayOrderId, amount: order.amount, currency: order.currencySnapshot, name: "LearnHub", description: `Enroll in ${courseTitle}`, prefill: { name: user.name, email: user.email } });
+
+const resolveEventId = (payload: any, eventType: string) => payload?.payload?.payment?.entity?.id ?? payload?.payload?.order?.entity?.id ?? payload?.payload?.payment_link?.entity?.id ?? `${eventType}:${payload?.created_at ?? Date.now()}`;
+
+export const orderService = {
+  async createCourseOrder(user: PublicUser, input: { courseId: string }) {
+    await connectToDatabase();
+    const course = await findPublishedCourse(input.courseId);
+    if (course.instructorId.toString() === user.id) throw new AppError("FORBIDDEN", "Instructors cannot purchase their own course", 403);
+    if (await enrollmentService.hasEnrollment(user.id, course._id.toString())) throw new AppError("ALREADY_ENROLLED", "You are already enrolled in this course", 409);
+    if (course.price === 0) throw new AppError("FREE_COURSE_ENROLLMENT_REQUIRED", "Free courses must be enrolled directly", 400);
+
+    const order = await Order.create({ userId: user.id, courseId: course._id.toString(), instructorId: course.instructorId.toString(), courseTitleSnapshot: course.title, priceSnapshot: course.price, currencySnapshot: course.currency, amount: course.price * 100, status: "CREATED" });
+    const razorpayOrder = await createRazorpayOrder({ amount: order.amount, currency: order.currencySnapshot, receipt: order._id.toString(), notes: { orderId: order._id.toString(), courseId: course._id.toString(), userId: user.id } });
+    order.razorpayOrderId = razorpayOrder.id;
+    order.amount = razorpayOrder.amount;
+    await order.save();
+    return { order: sanitizeOrder(order), checkout: getOrderCheckout(order, user, course.title) };
+  },
+
+  async verifyPayment(user: PublicUser, input: { razorpayOrderId: string; razorpayPaymentId: string; razorpaySignature: string }) {
+    await connectToDatabase();
+    const order = await Order.findOne({ razorpayOrderId: input.razorpayOrderId });
+    if (!order) throw new AppError("ORDER_NOT_FOUND", "Order not found", 404);
+    if (order.userId.toString() !== user.id && user.role !== "ADMIN") throw new AppError("FORBIDDEN", "You can only verify your own payment", 403);
+    if (!verifyRazorpayPaymentSignature({ orderId: input.razorpayOrderId, paymentId: input.razorpayPaymentId, signature: input.razorpaySignature })) throw new AppError("PAYMENT_SIGNATURE_INVALID", "Payment signature is invalid", 400);
+    if (order.status !== "PAID") {
+      order.status = "PAID";
+      order.razorpayPaymentId = input.razorpayPaymentId;
+      order.razorpaySignature = input.razorpaySignature;
+      order.paidAt = new Date();
+      await order.save();
+    }
+    const enrollment = await enrollmentService.createEnrollment({ userId: order.userId.toString(), courseId: order.courseId.toString(), orderId: order._id.toString() });
+    return { order: sanitizeOrder(order), enrollment: enrollment.enrollment };
+  },
+
+  async handleWebhook(rawBody: string, signature: string) {
+    await connectToDatabase();
+    if (!verifyRazorpayWebhookSignature(rawBody, signature)) throw new AppError("PAYMENT_SIGNATURE_INVALID", "Webhook signature is invalid", 400);
+    const payload = JSON.parse(rawBody) as { event?: string; payload?: Record<string, any> };
+    const eventType = payload.event ?? "unknown";
+    const razorpayOrderId = payload.payload?.payment?.entity?.order_id ?? payload.payload?.order?.entity?.id;
+    const razorpayPaymentId = payload.payload?.payment?.entity?.id ?? payload.payload?.payment_link?.entity?.payment_id;
+    const eventId = resolveEventId(payload, eventType);
+
+    const existingEvent = await PaymentEvent.findOne({ provider: "razorpay", eventId });
+    if (existingEvent?.processed) return { duplicate: true };
+    if (!existingEvent) await PaymentEvent.create({ provider: "razorpay", eventId, eventType, orderId: razorpayOrderId && Types.ObjectId.isValid(razorpayOrderId) ? (await Order.findOne({ razorpayOrderId }))?._id : undefined, payload, processed: false });
+
+    if (razorpayOrderId) {
+      const order = await Order.findOne({ razorpayOrderId });
+      if (order && order.status !== "PAID") {
+        order.status = "PAID";
+        if (razorpayPaymentId) order.razorpayPaymentId = razorpayPaymentId;
+        order.paidAt = order.paidAt ?? new Date();
+        await order.save();
+        await enrollmentService.createEnrollment({ userId: order.userId.toString(), courseId: order.courseId.toString(), orderId: order._id.toString() });
+      }
+    }
+
+    await PaymentEvent.updateOne({ provider: "razorpay", eventId }, { $set: { processed: true } });
+    return { processed: true };
+  },
+
+  async refundOrder(user: PublicUser, orderId: string) {
+    await connectToDatabase();
+    if (user.role !== "ADMIN") throw new AppError("FORBIDDEN", "Admin access is required", 403);
+    if (!Types.ObjectId.isValid(orderId)) throw new AppError("ORDER_NOT_FOUND", "Order not found", 404);
+    const order = await Order.findById(orderId);
+    if (!order) throw new AppError("ORDER_NOT_FOUND", "Order not found", 404);
+    if (order.status === "REFUNDED") return { order: sanitizeOrder(order), revoked: false };
+    if (order.status !== "PAID" || !order.razorpayPaymentId) throw new AppError("PAYMENT_FAILED", "Only paid orders can be refunded", 400);
+    await refundRazorpayPayment({ paymentId: order.razorpayPaymentId, amount: order.amount });
+    order.status = "REFUNDED";
+    order.refundedAt = new Date();
+    await order.save();
+    await enrollmentService.removeEnrollment(order.userId.toString(), order.courseId.toString());
+    return { order: sanitizeOrder(order), revoked: true };
+  },
+};
