@@ -18,7 +18,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <Link href="/courses" className="group rounded-2xl border bg-[var(--surface)] p-6 transition hover:border-indigo-500/40 hover:shadow-sm">
+          <Link href="/dashboard/courses" className="group rounded-2xl border bg-[var(--surface)] p-6 transition hover:border-indigo-500/40 hover:shadow-sm">
             <BookOpen className="size-5 text-indigo-600" />
             <h2 className="mt-4 font-semibold">My Courses</h2>
             <p className="mt-2 text-sm text-[var(--muted)]">Browse and continue your learning.</p>
