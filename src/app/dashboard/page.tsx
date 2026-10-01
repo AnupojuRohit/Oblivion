@@ -29,39 +29,25 @@ export default async function DashboardPage() {
         <h1 className="mt-2 text-3xl font-bold">Welcome, {user.name}</h1>
         <p className="mt-1 text-[var(--muted)]">Pick up where you left off or discover something new.</p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/courses" className="rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white">
-            Browse courses
-          </Link>
-          <Link href="/finder" className="rounded-lg border px-4 py-2.5 font-medium">
-            Open AI Finder
-          </Link>
+          <Link href="/courses" className="rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white">Browse courses</Link>
+          <Link href="/finder" className="rounded-lg border px-4 py-2.5 font-medium">Open AI Finder</Link>
         </div>
         <div className="mt-9 rounded-xl border bg-[var(--surface)] p-6">
           <h2 className="text-lg font-bold">My enrollments</h2>
           {enrollments.length ? (
             <div className="mt-4 divide-y">
               {enrollments.map((enrollment) => {
-                const course = enrollment.courseId as {
-                  _id?: { toString(): string };
-                  title?: string;
-                  slug?: string;
-                } | null;
+                const course = enrollment.courseId as { _id?: { toString(): string }; title?: string; slug?: string } | null;
                 const slug = course?.slug;
                 const title = course?.title ?? "Course";
                 return slug ? (
-                  <Link key={String(enrollment._id)} href={`/courses/${slug}`} className="block py-3 text-sm font-medium">
-                    {title}
-                  </Link>
+                  <Link key={String(enrollment._id)} href={"/courses/" + slug} className="block py-3 text-sm font-medium">{title}</Link>
                 ) : (
-                  <p key={String(enrollment._id)} className="py-3 text-sm">
-                    {title}
-                  </p>
+                  <p key={String(enrollment._id)} className="py-3 text-sm">{title}</p>
                 );
               })}
             </div>
-          ) : (
-            <p className="mt-4 text-sm text-[var(--muted)]">You are not enrolled in any courses yet.</p>
-          )}
+          ) : <p className="mt-4 text-sm text-[var(--muted)]">You are not enrolled in any courses yet.</p>}
         </div>
       </section>
     );
@@ -93,47 +79,29 @@ export default async function DashboardPage() {
           <h1 className="text-3xl font-bold">Welcome back, {user.name}</h1>
           <p className="mt-1 text-[var(--muted)]">A snapshot of your teaching activity.</p>
         </div>
-        <Link href="/dashboard/courses/new" className="rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white">
-          Create course
-        </Link>
+        <Link href="/dashboard/courses/new" className="rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white">Create course</Link>
       </div>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metric("Courses", analytics.courseCount, BookOpen)}
         {metric("Learners", analytics.enrollments, Users)}
         {metric("Average rating", analytics.averageRating.toFixed(1), Star)}
-        {metric(
-          "Estimated gross",
-          new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(
-            analytics.estimatedGross,
-          ),
-          IndianRupee,
-        )}
+        {metric("Estimated gross", new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(analytics.estimatedGross), IndianRupee)}
       </div>
       <div className="mt-9 rounded-xl border bg-[var(--surface)] p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold">Recent courses</h2>
-          <Link href="/dashboard/courses" className="text-sm font-medium text-indigo-600">
-            View all
-          </Link>
+          <Link href="/dashboard/courses" className="text-sm font-medium text-indigo-600">View all</Link>
         </div>
         {analytics.courses.length ? (
           <div className="mt-4 divide-y">
             {analytics.courses.slice(0, 5).map((course) => (
-              <Link
-                href={`/dashboard/courses/${course.id}/edit`}
-                key={course.id}
-                className="flex items-center justify-between py-3 text-sm"
-              >
+              <Link href={"/dashboard/courses/" + course.id + "/edit"} key={course.id} className="flex items-center justify-between py-3 text-sm">
                 <span className="font-medium">{course.title}</span>
-                <span className="rounded-full bg-indigo-500/10 px-2 py-1 text-xs text-indigo-700 dark:text-indigo-300">
-                  {course.status}
-                </span>
+                <span className="rounded-full bg-indigo-500/10 px-2 py-1 text-xs text-indigo-700 dark:text-indigo-300">{course.status}</span>
               </Link>
             ))}
           </div>
-        ) : (
-          <p className="mt-4 text-sm text-[var(--muted)]">Create your first course to begin building your catalogue.</p>
-        )}
+        ) : <p className="mt-4 text-sm text-[var(--muted)]">Create your first course to begin building your catalogue.</p>}
       </div>
     </section>
   );
