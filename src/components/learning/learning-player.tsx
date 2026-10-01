@@ -5,7 +5,7 @@ import { CheckCircle2,ChevronLeft,ChevronRight,Download,PlayCircle,RotateCcw } f
 type LearningLesson={sectionId:string;sectionTitle:string;sectionPosition:number;lessonId:string;lessonTitle:string;lessonPosition:number;type:string;isPreview:boolean;description?:string;videoUrl?:string;content?:string;durationSeconds?:number};
 type LearningCourse={id:string;title:string;slug:string;level:string;language:string;sections:Array<{id:string;title:string;position:number;lessons:Array<{id:string;title:string;position:number;isPreview:boolean;type:string;videoUrl?:string;content?:string;description?:string;durationSeconds?:number}>}>};
 type ResourceItem={id:string;name:string;lessonId:string;mimeType:string};
-declare global{interface Window{YT?:{Player:new(id:HTMLElement|string,options:any)=>any;PlayerState:any};}}
+declare global{interface Window{onYouTubeIframeAPIReady?:()=>void;YT?:{Player:new(id:HTMLElement|string,options:any)=>any;PlayerState:any};}}
 let ytPromise:Promise<void>|null=null;
 function loadYouTubeApi(){if(window.YT?.Player)return Promise.resolve();if(ytPromise)return ytPromise;ytPromise=new Promise((resolve)=>{const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";window.onYouTubeIframeAPIReady=()=>resolve();document.head.appendChild(s);});return ytPromise;}
 function videoIdFromUrl(url?:string){if(!url)return null;return url.match(/[?&]v=([^&]+)/)?.[1]??url.match(/youtu\.be\/([^?]+)/)?.[1]??null;}
