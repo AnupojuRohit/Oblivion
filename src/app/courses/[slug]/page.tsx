@@ -6,6 +6,7 @@ import { courseService } from "@/modules/courses/course.service";
 import { enrollmentService } from "@/modules/enrollments/enrollment.service";
 import { reviewService } from "@/modules/reviews/review.service";
 import { ReviewForm } from "@/components/courses/review-form";
+import { EnrollmentButton } from "@/components/courses/enrollment-button";
 
 export default async function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUser();
@@ -19,8 +20,8 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
 
   const reviews = await reviewService.listForCourse(course.id);
   const myReview = user ? await reviewService.getUserReview(course.id, user.id) : null;
-  const canReview = Boolean(user && await enrollmentService.hasEnrollment(user.id, course.id));
   const enrolled = Boolean(user && await enrollmentService.hasEnrollment(user.id, course.id));
+  const canReview = enrolled;
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
@@ -38,8 +39,18 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
 
         <aside className="h-fit rounded-xl border bg-[var(--surface)] p-6 shadow-sm">
           <p className="text-2xl font-bold">{course.price === 0 ? "Free" : new Intl.NumberFormat("en-IN", { style: "currency", currency: course.currency, maximumFractionDigits: 0 }).format(course.price)}</p>
-          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Course details and preview lessons are available below. Enrollment is enabled through the secured checkout flow.</p>
-          {enrolled ? <Link href={`/learn/${course.id}`} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white"><PlayCircle className="size-4" />Open course player</Link> : null}
+          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Course details and preview lessons are available below. Enrollment unlocks the full learning player.</p>
+          {enrolled ? (
+            <Link href={`/learn/${course.id}`} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white">
+              <PlayCircle className="size-4" />Open course player
+            </Link>
+          ) : user ? (
+            <EnrollmentButton courseId={course.id} price={course.price} />
+          ) : (
+            <Link href={`/login?next=/courses/${course.slug}`} className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white">
+              Sign in to enroll
+            </Link>
+          )}
         </aside>
       </div>
 
@@ -73,7 +84,6 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                 <Star className="size-4 fill-amber-400 text-amber-400" /> {course.ratingAverage.toFixed(1)}
               </div>
             </div>
-
             <div className="mt-6 space-y-4">
               {reviews.length ? reviews.map((review) => (
                 <article key={review._id.toString()} className="rounded-xl border bg-background p-4">
@@ -96,9 +106,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
             <section className="rounded-2xl border bg-[var(--surface)] p-6">
               <h2 className="text-lg font-semibold">{myReview ? "Edit your review" : "Write a review"}</h2>
               <p className="mt-1 text-sm text-[var(--muted)]">Share your experience with future learners.</p>
-              <div className="mt-4">
-                <ReviewForm courseId={course.id} existingReview={myReview ? { id: myReview._id.toString(), rating: myReview.rating, comment: myReview.comment } : null} />
-              </div>
+              <div className="mt-4"><ReviewForm courseId={course.id} existingReview={myReview ? { id: myReview._id.toString(), rating: myReview.rating, comment: myReview.comment } : null} /></div>
             </section>
           ) : (
             <section className="rounded-2xl border bg-[var(--surface)] p-6">
@@ -106,10 +114,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
               <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Enroll in this course to share a review and help other learners decide.</p>
             </section>
           )}
-
           <section className="rounded-2xl border bg-[var(--surface)] p-6">
-            <h2 className="text-lg font-semibold">Free resources</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Once enrolled, you&apos;ll find course resources in the player and can download eligible files securely.</p>
+            <h2 className="text-lg font-semibold">Course resources</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Enrolled learners can download eligible course resources securely from the learning player.</p>
           </section>
         </div>
       </div>
