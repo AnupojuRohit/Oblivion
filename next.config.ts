@@ -1,3 +1,13 @@
 import type { NextConfig } from "next";
-const nextConfig: NextConfig = { reactStrictMode: true };
+
+const allowedDevOrigins =
+  process.env.ALLOWED_DEV_ORIGINS?.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean) ?? [];
+
+const nextConfig: NextConfig = {
+  reactStrictMode: true,
+  ...(allowedDevOrigins.length ? { allowedDevOrigins } : {}),
+};
+
 export default nextConfig;

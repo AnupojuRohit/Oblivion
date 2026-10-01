@@ -1,12 +1,4 @@
-import { redirect } from "next/navigation";
 import { CourseEditor } from "@/components/dashboard/course-editor";
+import { requireInstructorPage } from "@/lib/auth/helpers";
 import { categoryService } from "@/modules/categories/category.service";
-import { requireInstructor } from "@/lib/auth/helpers";
-
-export default async function NewCoursePage() {
-  const user = await requireInstructor();
-  if (!user) redirect("/login");
-  let categories: Awaited<ReturnType<typeof categoryService.list>> = [];
-  try { categories = await categoryService.list(); } catch {}
-  return <section className="p-6 md:p-10"><h1 className="text-3xl font-bold">Create a course</h1><p className="mt-2 text-[var(--muted)]">Start with the course essentials. You can add lessons in the next step.</p>{categories.length ? <div className="mt-8 max-w-3xl rounded-xl border bg-[var(--surface)] p-6"><CourseEditor categories={categories.map((category) => ({ _id: category._id.toString(), name: category.name }))} /></div> : <p className="mt-8 rounded-lg border p-5 text-[var(--muted)]">A category must be created by an administrator before a course can be added.</p>}</section>;
-}
+export default async function NewCoursePage() { await requireInstructorPage(); let categories: Awaited<ReturnType<typeof categoryService.list>> = []; try { categories = await categoryService.list(); } catch { } return <section className="p-6 md:p-10"><h1 className="text-3xl font-bold">Create a course</h1><p className="mt-2 text-[var(--muted)]">Start with the course essentials. You can add lessons in the next step.</p>{categories.length ? <div className="mt-8 max-w-3xl rounded-xl border bg-[var(--surface)] p-6"><CourseEditor categories={categories.map((category) => ({ _id: category._id.toString(), name: category.name }))} /></div> : <p className="mt-8 rounded-lg border p-5 text-[var(--muted)]">A category must be created by an administrator before a course can be added.</p>}</section>; }
