@@ -10,18 +10,20 @@ import { EnrollmentButton } from "@/components/courses/enrollment-button";
 
 export default async function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUser();
-  let course;
+  const { slug } = await params;
 
+  let course;
   try {
-    course = await courseService.getBySlug((await params).slug, user);
+    course = await courseService.getBySlug(slug, user);
   } catch {
     notFound();
   }
 
-  const reviews = await reviewService.listForCourse(course.id);
-  const myReview = user ? await reviewService.getUserReview(course.id, user.id) : null;
   const enrolled = Boolean(user && await enrollmentService.hasEnrollment(user.id, course.id));
-  const canReview = enrolled;
+  const [reviews, myReview] = await Promise.all([
+    reviewService.listForCourse(course.id),
+    user ? reviewService.getUserReview(course.id, user.id) : Promise.resolve(null),
+  ]);
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
@@ -41,15 +43,11 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
           <p className="text-2xl font-bold">{course.price === 0 ? "Free" : new Intl.NumberFormat("en-IN", { style: "currency", currency: course.currency, maximumFractionDigits: 0 }).format(course.price)}</p>
           <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Course details and preview lessons are available below. Enrollment unlocks the full learning player.</p>
           {enrolled ? (
-            <Link href={`/learn/${course.id}`} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white">
-              <PlayCircle className="size-4" />Open course player
-            </Link>
+            <Link href={"/learn/" + course.id} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white"><PlayCircle className="size-4" />Open course player</Link>
           ) : user ? (
             <EnrollmentButton courseId={course.id} price={course.price} />
           ) : (
-            <Link href={`/login?next=/courses/${course.slug}`} className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white">
-              Sign in to enroll
-            </Link>
+            <Link href={"/login?next=/courses/" + course.slug} className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white">Sign in to enroll</Link>
           )}
         </aside>
       </div>
@@ -80,18 +78,13 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                 <h2 className="text-2xl font-bold">Reviews</h2>
                 <p className="mt-1 text-sm text-[var(--muted)]">{course.ratingAverage.toFixed(1)} average · {course.ratingCount} reviews</p>
               </div>
-              <div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-sm font-semibold">
-                <Star className="size-4 fill-amber-400 text-amber-400" /> {course.ratingAverage.toFixed(1)}
-              </div>
+              <div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-sm font-semibold"><Star className="size-4 fill-amber-400 text-amber-400" /> {course.ratingAverage.toFixed(1)}</div>
             </div>
             <div className="mt-6 space-y-4">
               {reviews.length ? reviews.map((review) => (
                 <article key={review._id.toString()} className="rounded-xl border bg-background p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="font-semibold">{review.userId?.name ?? "Learner"}</p>
-                      <p className="text-xs text-[var(--muted)]">{new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(new Date(review.createdAt))}</p>
-                    </div>
+                    <div><p className="font-semibold">{review.userId?.name ?? "Learner"}</p><p className="text-xs text-[var(--muted)]">{new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(new Date(review.createdAt))}</p></div>
                     <div className="inline-flex items-center gap-1 text-sm font-semibold text-amber-500">{review.rating}<Star className="size-4 fill-amber-400 text-amber-400" /></div>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{review.comment}</p>
@@ -102,7 +95,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
         </div>
 
         <div className="space-y-6">
-          {canReview ? (
+          {enrolled ? (
             <section className="rounded-2xl border bg-[var(--surface)] p-6">
               <h2 className="text-lg font-semibold">{myReview ? "Edit your review" : "Write a review"}</h2>
               <p className="mt-1 text-sm text-[var(--muted)]">Share your experience with future learners.</p>
