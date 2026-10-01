@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { requireRazorpayEnv } from "@/lib/env";
+import { requireRazorpayEnv, requireRazorpayWebhookSecret } from "@/lib/env";
 
 type RazorpayOrderInput = { amount: number; currency: string; receipt: string; notes?: Record<string, string> };
 type RazorpayRefundInput = { paymentId: string; amount: number; speed?: "normal" | "optimum" };
@@ -30,7 +30,7 @@ export function verifyRazorpayPaymentSignature(input: { orderId: string; payment
 }
 
 export function verifyRazorpayWebhookSignature(rawBody: string, signature: string) {
-  const { webhookSecret } = requireRazorpayEnv();
+  const webhookSecret = requireRazorpayWebhookSecret();
   const expected = crypto.createHmac("sha256", webhookSecret).update(rawBody).digest("hex");
   return expected.length === signature.length && crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
 }
