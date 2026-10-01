@@ -43,7 +43,7 @@ export default async function VerifyCertificatePage({ params }: { params: Promis
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href={`/api/courses/${certificate.courseId}/certificate`} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">
+          <Link href={`/api/certificates/${certificate.verifyId}/download`} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">
             <CheckCircle2 className="size-4" />
             Download PDF
           </Link>
