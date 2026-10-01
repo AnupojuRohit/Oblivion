@@ -1,5 +1,103 @@
 import { requireFinderEnv } from "@/lib/env";
 import type { VideoCandidate } from "@/modules/finder/finder.types";
-type SearchItem = { id?: { videoId?: string }; snippet?: { title?: string; description?: string; channelTitle?: string; channelId?: string; publishedAt?: string; thumbnails?: { medium?: { url?: string }; high?: { url?: string } } } };
-type VideoItem = { id?: string; snippet?: SearchItem["snippet"]; statistics?: { viewCount?: string; likeCount?: string; commentCount?: string }; contentDetails?: { duration?: string } };
-export async function searchYoutube(query: string): Promise<VideoCandidate[]> { const key = requireFinderEnv().youtubeApiKey; const search = new URL("https://www.googleapis.com/youtube/v3/search"); search.search = new URLSearchParams({ key, part: "snippet", q: query, type: "video", maxResults: "12", relevanceLanguage: "en", safeSearch: "strict" }).toString(); const searchResponse = await fetch(search, { next: { revalidate: 0 } }); if (!searchResponse.ok) throw new Error("YouTube search request failed"); const searchJson = await searchResponse.json() as { items?: SearchItem[] }; const ids = (searchJson.items ?? []).flatMap((item) => item.id?.videoId ? [item.id.videoId] : []); if (!ids.length) return []; const videos = new URL("https://www.googleapis.com/youtube/v3/videos"); videos.search = new URLSearchParams({ key, part: "snippet,statistics,contentDetails", id: ids.join(",") }).toString(); const videoResponse = await fetch(videos, { next: { revalidate: 0 } }); if (!videoResponse.ok) throw new Error("YouTube video statistics request failed"); const videoJson = await videoResponse.json() as { items?: VideoItem[] }; return (videoJson.items ?? []).flatMap((item) => item.id && item.snippet ? [{ videoId: item.id, title: item.snippet.title ?? "Untitled video", description: item.snippet.description ?? "", channelName: item.snippet.channelTitle ?? "Unknown channel", channelId: item.snippet.channelId ?? "", thumbnailUrl: item.snippet.thumbnails?.high?.url ?? item.snippet.thumbnails?.medium?.url ?? "", publishedAt: item.snippet.publishedAt ?? new Date().toISOString(), viewCount: Number(item.statistics?.viewCount ?? 0), likeCount: Number(item.statistics?.likeCount ?? 0), commentCount: Number(item.statistics?.commentCount ?? 0), duration: item.contentDetails?.duration, score: 0, videoUrl: `https://www.youtube.com/watch?v=${item.id}` }] : []); }
+
+type SearchItem = {
+  id?: { videoId?: string };
+  snippet?: {
+    title?: string;
+    description?: string;
+    channelTitle?: string;
+    channelId?: string;
+    publishedAt?: string;
+    thumbnails?: { medium?: { url?: string }; high?: { url?: string } };
+  };
+};
+
+type VideoItem = {
+  id?: string;
+  snippet?: SearchItem["snippet"];
+  statistics?: { viewCount?: string; likeCount?: string; commentCount?: string };
+  contentDetails?: { duration?: string };
+};
+
+const SEARCH_QUERIES = (query: string, level?: string) => {
+  const levelHint =
+    level === "BEGINNER"
+      ? "beginner fundamentals tutorial course"
+      : level === "INTERMEDIATE"
+        ? "intermediate tutorial deep dive project"
+        : level === "ADVANCED"
+          ? "advanced deep dive internals architecture"
+          : "tutorial course guide";
+  return [query, query + " " + levelHint, query + " explained"];
+};
+
+export async function searchYoutube(query: string, level?: string): Promise<VideoCandidate[]> {
+  const key = requireFinderEnv().youtubeApiKey;
+  const searchResults = new Map<string, SearchItem["snippet"]>();
+
+  for (const q of SEARCH_QUERIES(query, level)) {
+    const search = new URL("https://www.googleapis.com/youtube/v3/search");
+    search.search = new URLSearchParams({
+      key,
+      part: "snippet",
+      q,
+      type: "video",
+      maxResults: "25",
+      relevanceLanguage: "en",
+      safeSearch: "strict",
+      videoEmbeddable: "true",
+    }).toString();
+
+    const response = await fetch(search, { cache: "no-store" });
+    if (!response.ok) throw new Error("YouTube search request failed");
+
+    const json = (await response.json()) as { items?: SearchItem[] };
+    for (const item of json.items ?? []) {
+      const id = item.id?.videoId;
+      if (id && item.snippet) searchResults.set(id, item.snippet);
+    }
+  }
+
+  const ids = [...searchResults.keys()].slice(0, 50);
+  if (!ids.length) return [];
+
+  const videos: VideoCandidate[] = [];
+  for (let i = 0; i < ids.length; i += 50) {
+    const batch = ids.slice(i, i + 50);
+    const videosUrl = new URL("https://www.googleapis.com/youtube/v3/videos");
+    videosUrl.search = new URLSearchParams({
+      key,
+      part: "snippet,statistics,contentDetails",
+      id: batch.join(","),
+    }).toString();
+
+    const response = await fetch(videosUrl, { cache: "no-store" });
+    if (!response.ok) throw new Error("YouTube video statistics request failed");
+
+    const json = (await response.json()) as { items?: VideoItem[] };
+    for (const item of json.items ?? []) {
+      if (!item.id || !item.snippet) continue;
+      videos.push({
+        videoId: item.id,
+        title: item.snippet.title ?? "Untitled video",
+        description: item.snippet.description ?? "",
+        channelName: item.snippet.channelTitle ?? "Unknown channel",
+        channelId: item.snippet.channelId ?? "",
+        thumbnailUrl:
+          item.snippet.thumbnails?.high?.url ??
+          item.snippet.thumbnails?.medium?.url ??
+          "",
+        publishedAt: item.snippet.publishedAt ?? new Date().toISOString(),
+        viewCount: Number(item.statistics?.viewCount ?? 0),
+        likeCount: Number(item.statistics?.likeCount ?? 0),
+        commentCount: Number(item.statistics?.commentCount ?? 0),
+        duration: item.contentDetails?.duration,
+        score: 0,
+        videoUrl: "https://www.youtube.com/watch?v=" + item.id,
+      });
+    }
+  }
+
+  return videos;
+}
