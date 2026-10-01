@@ -104,7 +104,7 @@ export function Navbar() {
                 {label}
               </Link>
             ))}
-            {!user && (
+            {user?.role === "STUDENT" && (
               <Link href="/instructor/apply" className="px-3 py-1.5 text-sm font-medium rounded-md text-[var(--fg-tertiary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)] transition-all duration-150">
                 Become Instructor
               </Link>
@@ -165,7 +165,7 @@ export function Navbar() {
               ) : (
                 <div className="hidden md:flex items-center gap-2">
                   <Link href="/login" className="px-3 py-1.5 text-sm font-medium text-[var(--fg-tertiary)] hover:text-[var(--fg)] transition-colors duration-150">Sign in</Link>
-                  <Link href="/register" className="btn btn-primary text-xs px-4 py-2">Get started</Link>
+                  <Link href="/instructor/apply" className="btn btn-primary text-xs px-4 py-2">Get started</Link>
                 </div>
               )
             )}
