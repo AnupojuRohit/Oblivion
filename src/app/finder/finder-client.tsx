@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Bookmark, ExternalLink, PlayCircle, Search, Sparkles } from "lucide-react";
 
@@ -25,7 +25,7 @@ export default function FinderClient() {
   const [level, setLevel] = useState<"BEGINNER" | "INTERMEDIATE" | "ADVANCED">((searchParams.get("level") as "BEGINNER" | "INTERMEDIATE" | "ADVANCED") ?? "BEGINNER");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<FinderResult | null>(null);
+  const [result, setResult] = useState<FinderResult | null>(null);\n  const [saved, setSaved] = useState(false);\n  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -84,7 +84,7 @@ export default function FinderClient() {
           </div>
 
           <div className="rounded-2xl border bg-background/90 p-5 shadow-lg backdrop-blur">
-            <form className="space-y-4" onSubmit={(event) => event.preventDefault()}>
+            <form className="space-y-4" onSubmit={submitSearch}>
               <label className="block text-sm font-medium">
                 Search
                 <div className="mt-2 flex items-center gap-2 rounded-xl border bg-[var(--surface)] px-4 py-3">
