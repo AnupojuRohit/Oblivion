@@ -581,7 +581,7 @@ export default function LandingPage() {
               <Link href="/courses" className="btn btn-primary text-sm gap-2">
                 Explore Courses <ArrowRight className="size-4" />
               </Link>
-              <Link href="/register" className="btn btn-secondary text-sm gap-2">
+              <Link href="/instructor/apply" className="btn btn-secondary text-sm gap-2">
                 Create Account <ChevronRight className="size-4" />
               </Link>
             </div>
