@@ -105,7 +105,7 @@ export function Navbar() {
               </Link>
             ))}
             {!user && (
-              <Link href="/register" className="px-3 py-1.5 text-sm font-medium rounded-md text-[var(--fg-tertiary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)] transition-all duration-150">
+              <Link href="/instructor/apply" className="px-3 py-1.5 text-sm font-medium rounded-md text-[var(--fg-tertiary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)] transition-all duration-150">
                 Become Instructor
               </Link>
             )}
