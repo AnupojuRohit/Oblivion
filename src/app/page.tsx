@@ -437,7 +437,7 @@ export default function LandingPage() {
             transition={{ duration: 0.6, delay: 2.5 }}
           >
             <Link
-              href="/register"
+              href="/instructor/apply"
               className="text-xs text-[var(--fg-quaternary)] hover:text-[var(--fg-secondary)] inline-flex items-center gap-1 transition-colors"
             >
               Become an instructor <ArrowUpRight className="size-3" />
