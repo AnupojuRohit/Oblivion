@@ -145,7 +145,7 @@ export function Navbar() {
                       <Link href={dashboardHref} className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)] transition-colors">
                         <LayoutDashboard className="size-3.5" /> Dashboard
                       </Link>
-                      <Link href="/courses" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)] transition-colors">
+                      <Link href="/dashboard/courses" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)] transition-colors">
                         <BookOpen className="size-3.5" /> My Courses
                       </Link>
                       <Link href="/finder" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)] transition-colors">
@@ -192,7 +192,7 @@ export function Navbar() {
               {user ? (
                 <>
                   <Link href={dashboardHref} className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)] transition-colors"><LayoutDashboard className="size-4" /> Dashboard</Link>
-                  <Link href="/courses" className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)] transition-colors"><BookOpen className="size-4" /> My Courses</Link>
+                  <Link href="/dashboard/courses" className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)] transition-colors"><BookOpen className="size-4" /> My Courses</Link>
                   <Link href="/finder" className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)] transition-colors"><Sparkles className="size-4" /> AI Finder</Link>
                   <Link href="/dashboard/profile" className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)] transition-colors"><User className="size-4" /> Profile</Link>
                   <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md text-[var(--fg-quaternary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)] transition-colors"><LogOut className="size-4" /> Sign out</button>
