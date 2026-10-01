@@ -1,0 +1,3 @@
+import { Schema, model, models } from "mongoose";
+const schema=new Schema({userId:{type:Schema.Types.ObjectId,ref:"User",required:true,unique:true,index:true},bio:{type:String,required:true,trim:true,maxlength:2000},expertise:{type:String,required:true,trim:true,maxlength:500},status:{type:String,enum:["PENDING","APPROVED","REJECTED"],default:"PENDING",index:true},reviewedAt:Date},{timestamps:true,collection:"instructor_applications"});
+export const InstructorApplication=models.InstructorApplication||model("InstructorApplication",schema);
