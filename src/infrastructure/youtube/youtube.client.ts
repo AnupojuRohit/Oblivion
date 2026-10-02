@@ -32,11 +32,20 @@ const SEARCH_QUERIES = (query: string, level?: string) => {
   return [query, query + " " + levelHint, query + " explained"];
 };
 
+const FETCH_TIMEOUT_MS = 8_000;
+
+const fetchWithTimeout = async (input: RequestInfo | URL, init: RequestInit = {}) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try { return await fetch(input, { ...init, signal: controller.signal }); }
+  finally { clearTimeout(timeout); }
+};
+
 export async function searchYoutube(query: string, level?: string): Promise<VideoCandidate[]> {
   const key = requireFinderEnv().youtubeApiKey;
   const searchResults = new Map<string, SearchItem["snippet"]>();
 
-  for (const q of SEARCH_QUERIES(query, level)) {
+  const queries = SEARCH_QUERIES(query, level);\n\n  await Promise.all(queries.map(async (q) => {
     const search = new URL("https://www.googleapis.com/youtube/v3/search");
     search.search = new URLSearchParams({
       key,
@@ -49,7 +58,7 @@ export async function searchYoutube(query: string, level?: string): Promise<Vide
       videoEmbeddable: "true",
     }).toString();
 
-    const response = await fetch(search, { cache: "no-store" });
+    const response = await fetchWithTimeout(search, { cache: "no-store" });
     if (!response.ok) throw new Error("YouTube search request failed");
 
     const json = (await response.json()) as { items?: SearchItem[] };
@@ -72,7 +81,7 @@ export async function searchYoutube(query: string, level?: string): Promise<Vide
       id: batch.join(","),
     }).toString();
 
-    const response = await fetch(videosUrl, { cache: "no-store" });
+    const response = await fetchWithTimeout(videosUrl, { cache: "no-store" });
     if (!response.ok) throw new Error("YouTube video statistics request failed");
 
     const json = (await response.json()) as { items?: VideoItem[] };
