@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_ENV: production
+      MONGODB_URI: mongodb://127.0.0.1:27017/oblivion_ci
+      SESSION_SECRET: ci-session-secret-must-be-at-least-32-characters-long
+      RAZORPAY_KEY_ID: ci-key
+      RAZORPAY_KEY_SECRET: ci-secret
+      RAZORPAY_WEBHOOK_SECRET: ci-webhook-secret
+      YOUTUBE_API_KEY: ci-youtube
+      GEMINI_API_KEY: ci-gemini
+      GEMINI_MODEL: gemini-2.5-flash
+      STORAGE_ENDPOINT: https://storage.example.com
+      STORAGE_ACCESS_KEY: ci-access
+      STORAGE_SECRET_KEY: ci-secret
+      STORAGE_BUCKET: ci-bucket
+      NEXT_PUBLIC_APP_URL: https://example.com
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
