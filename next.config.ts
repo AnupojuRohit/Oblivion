@@ -12,7 +12,6 @@ const nextConfig: NextConfig = {
     turbopackFileSystemCacheForDev: true,
     turbopackFileSystemCacheForBuild: true,
   },
-  optimizePackageImports: ["framer-motion"],
   async headers() {
     return [{
       source: "/(.*)",
