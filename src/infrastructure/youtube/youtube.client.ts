@@ -45,7 +45,9 @@ export async function searchYoutube(query: string, level?: string): Promise<Vide
   const key = requireFinderEnv().youtubeApiKey;
   const searchResults = new Map<string, SearchItem["snippet"]>();
 
-  const queries = SEARCH_QUERIES(query, level);\n\n  await Promise.all(queries.map(async (q) => {
+  const queries = SEARCH_QUERIES(query, level);
+
+  await Promise.all(queries.map(async (q) => {
     const search = new URL("https://www.googleapis.com/youtube/v3/search");
     search.search = new URLSearchParams({
       key,
