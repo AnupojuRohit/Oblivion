@@ -1,6 +1,8 @@
 "use client";
 
 export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  void error;
+
   return (
     <html lang="en">
       <body className="min-h-screen bg-black text-white">
