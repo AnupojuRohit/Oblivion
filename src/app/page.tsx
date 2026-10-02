@@ -525,10 +525,10 @@ export default function LandingPage() {
       <section className="py-28 px-5 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
-            <Stat value="10K+" label="Learners worldwide" />
-            <Stat value="500+" label="Expert-led courses" />
-            <Stat value="98%" label="Completion satisfaction" />
-            <Stat value="AI" label="Powered discovery" />
+            <Stat value="COURSES" label="Structured learning" />
+            <Stat value="AI" label="Resource discovery" />
+            <Stat value="PROGRESS" label="Track your learning" />
+            <Stat value="CERTS" label="Completion certificates" />
           </div>
         </div>
       </section>
