@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,7 +15,7 @@ const navLinks = [
 ];
 
 export function Navbar() {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -24,8 +24,6 @@ export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const userMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => { const timer = window.setTimeout(() => setMounted(true), 0); return () => window.clearTimeout(timer); }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
