@@ -14,9 +14,21 @@ const authHeader = () => {
 const requestJson = async <T>(url: string, init: RequestInit) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  const response = await fetch(url, { ...init, signal: controller.signal, headers: { Authorization: authHeader(), "Content-Type": "application/json", ...(init.headers ?? {}) } });
-  if (!response.ok) throw new Error(`Razorpay request failed with status ${response.status}`);
-  return response.json() as Promise<T>;
+  try {
+    const response = await fetch(url, {
+      ...init,
+      signal: controller.signal,
+      headers: {
+        Authorization: authHeader(),
+        "Content-Type": "application/json",
+        ...(init.headers ?? {}),
+      },
+    });
+    if (!response.ok) throw new Error(`Razorpay request failed with status ${response.status}`);
+    return response.json() as Promise<T>;
+  } finally {
+    clearTimeout(timeout);
+  }
 };
 
 export async function createRazorpayOrder(input: RazorpayOrderInput) {
