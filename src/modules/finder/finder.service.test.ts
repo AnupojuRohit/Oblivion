@@ -46,7 +46,7 @@ describe("finderService", () => {
 
     expect(recommendationMock.findOneAndUpdate).toHaveBeenCalledWith(
       { query: "docker::BEGINNER" },
-      expect.objectContaining({ result: expect.objectContaining({ query: "docker", level: "BEGINNER" }) }),
+      expect.objectContaining({ expiresAt: expect.any(Date), result: expect.objectContaining({ query: "Docker", level: "BEGINNER" }) }),
       expect.objectContaining({ upsert: true }),
     );
   });
