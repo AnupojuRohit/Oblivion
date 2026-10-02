@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import Link from "next/link";
-import { motion, useInView, useScroll, useTransform } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { ArrowRight, ArrowUpRight, Sparkles, BookOpen, Zap, ChevronRight } from "lucide-react";
 
 /* ─── HERO WORD REVEAL ───────────────────────────────────── */
@@ -324,19 +324,7 @@ function FinderPreview() {
 
 /* ─── MAIN LANDING PAGE ──────────────────────────────────── */
 export default function LandingPage() {
-  const [heroReady, setHeroReady] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
-  const heroY = useTransform(scrollYProgress, [0, 0.7], [0, 40]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setHeroReady(true), 100);
-    return () => clearTimeout(t);
-  }, []);
 
   return (
     <>
@@ -358,12 +346,11 @@ export default function LandingPage() {
         />
 
         {/* Scan line */}
-        {heroReady && <ScanLine />}
+        <ScanLine />
 
         {/* Content */}
         <motion.div
           className="relative z-10 text-center px-5 max-w-6xl mx-auto"
-          style={{ opacity: heroOpacity, y: heroY }}
         >
           {/* Eyebrow label */}
           <motion.div
@@ -400,7 +387,7 @@ export default function LandingPage() {
           {/* Brand word OBLIVION */}
           <div className="overflow-hidden leading-none mb-10">
             <h1 className="display-hero text-[var(--fg)] font-black tracking-[-0.05em]">
-              {heroReady && <WordReveal text="OBLIVION" />}
+              <WordReveal text="OBLIVION" />
             </h1>
           </div>
 
