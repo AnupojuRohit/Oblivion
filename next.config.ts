@@ -7,6 +7,12 @@ const allowedDevOrigins =
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Cache compiled Turbopack artifacts between restarts/builds.
+  experimental: {
+    turbopackFileSystemCacheForDev: true,
+    turbopackFileSystemCacheForBuild: true,
+  },
+  optimizePackageImports: ["framer-motion"],
   async headers() {
     return [{
       source: "/(.*)",
