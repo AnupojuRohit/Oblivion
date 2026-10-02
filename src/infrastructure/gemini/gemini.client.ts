@@ -3,6 +3,8 @@ import { requireFinderEnv } from "@/lib/env";
 import { geminiSelectionSchema } from "@/modules/finder/finder.schema";
 import type { VideoCandidate } from "@/modules/finder/finder.types";
 
+const GEMINI_TIMEOUT_MS = 10_000;
+
 export async function selectWithGemini(
   query: string,
   candidates: VideoCandidate[],
@@ -38,11 +40,14 @@ export async function selectWithGemini(
     "Return JSON: { selectedVideoId, alternativeVideoIds, reasoning, roadmap } where roadmap contains 2-6 {step,title,why}.\n\n" +
     "Candidates:\n" + JSON.stringify(compact);
 
-  const response = await ai.models.generateContent({
+  const response = await Promise.race([
+    ai.models.generateContent({
     model: config.geminiModel,
     contents: prompt,
     config: { responseMimeType: "application/json" },
-  });
+    }),
+    new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Gemini request timed out")), GEMINI_TIMEOUT_MS)),
+  ]);
 
   const parsed = geminiSelectionSchema.parse(JSON.parse(response.text ?? "{}"));
   const knownIds = new Set(candidates.map((candidate) => candidate.videoId));
