@@ -47,6 +47,7 @@ beforeEach(() => {
 
 describe("orderService", () => {
   it("creates a checkout order using the server-side course price", async () => {
+    orderMock.findOne.mockResolvedValueOnce(null as never);
     const result = await orderService.createCourseOrder({ id: "507f1f77bcf86cd799439014", name: "Student", email: "student@example.com", role: "STUDENT" }, { courseId: "507f1f77bcf86cd799439011" });
 
     expect(razorpayCreateMock).toHaveBeenCalledWith(expect.objectContaining({ amount: 49900, currency: "INR", receipt: "507f1f77bcf86cd799439013", notes: expect.objectContaining({ orderId: "507f1f77bcf86cd799439013", courseId: "507f1f77bcf86cd799439011", userId: "507f1f77bcf86cd799439014" }) }));
