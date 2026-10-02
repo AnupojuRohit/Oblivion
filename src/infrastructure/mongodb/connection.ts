@@ -11,6 +11,7 @@ const MONGO_CONNECT_OPTIONS = {
   minPoolSize: 2,
   maxIdleTimeMS: 30_000,
   heartbeatFrequencyMS: 10_000,
+  autoIndex: process.env.NODE_ENV !== "production",
 } as const;
 
 function createConnection() {
