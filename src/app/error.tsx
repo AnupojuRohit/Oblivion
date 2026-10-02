@@ -1,11 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-
 export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  useEffect(() => {
-    // Keep the production UI useful without exposing server-side error details.
-  }, []);
+  void error;
 
   return (
     <main className="min-h-[70vh] flex items-center justify-center px-6">
