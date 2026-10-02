@@ -4,13 +4,17 @@ import { requireRazorpayEnv, requireRazorpayWebhookSecret } from "@/lib/env";
 type RazorpayOrderInput = { amount: number; currency: string; receipt: string; notes?: Record<string, string> };
 type RazorpayRefundInput = { paymentId: string; amount: number; speed?: "normal" | "optimum" };
 
+const REQUEST_TIMEOUT_MS = 10_000;
+
 const authHeader = () => {
   const { keyId, keySecret } = requireRazorpayEnv();
   return `Basic ${Buffer.from(`${keyId}:${keySecret}`).toString("base64")}`;
 };
 
 const requestJson = async <T>(url: string, init: RequestInit) => {
-  const response = await fetch(url, { ...init, headers: { Authorization: authHeader(), "Content-Type": "application/json", ...(init.headers ?? {}) } });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const response = await fetch(url, { ...init, signal: controller.signal, headers: { Authorization: authHeader(), "Content-Type": "application/json", ...(init.headers ?? {}) } });
   if (!response.ok) throw new Error(`Razorpay request failed with status ${response.status}`);
   return response.json() as Promise<T>;
 };
