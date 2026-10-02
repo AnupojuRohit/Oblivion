@@ -34,7 +34,7 @@ export const finderService = {
     const normalized = normalizeQuery(query);
     const cacheKey = getCacheKey(normalized, level);
 
-    const cached = await ResourceRecommendation.findOne({ query: cacheKey }).lean();
+    const cached = await ResourceRecommendation.findOne({ query: cacheKey, expiresAt: { $gt: new Date() } }).lean();
     if (cached?.result) return { ...(cached.result as FinderResult), cached: true };
 
     const rawCandidates = await searchYoutube(normalized, level);
