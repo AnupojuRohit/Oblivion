@@ -13,8 +13,17 @@ const ensureCourseExists = async (courseId: string) => {
   return course;
 };
 
-const recomputeRating = async (courseId: string, ratingSum: number, ratingCount: number) => {
-  await Course.updateOne({ _id: courseId }, { $set: { ratingSum, ratingCount, ratingAverage: ratingCount ? ratingSum / ratingCount : 0 } });
+const applyRatingDelta = async (courseId: string, sumDelta: number, countDelta: number) => {
+  await Course.updateOne(
+    { _id: courseId },
+    [
+      { $set: {
+        ratingSum: { $add: ["$ratingSum", sumDelta] },
+        ratingCount: { $max: [0, { $add: ["$ratingCount", countDelta] }] },
+      } },
+      { $set: { ratingAverage: { $cond: [{ $gt: ["$ratingCount", 0] }, { $divide: ["$ratingSum", "$ratingCount"] }, 0] } } },
+    ],
+  );
 };
 
 const requireOwnerOrAdmin = (user: PublicUser, reviewUserId: string) => {
@@ -41,8 +50,14 @@ export const reviewService = {
     if (course.instructorId.toString() === user.id) throw new AppError("REVIEW_NOT_ALLOWED", "Instructors cannot review their own course", 403);
     if (await Review.exists({ userId: user.id, courseId })) throw new AppError("REVIEW_ALREADY_EXISTS", "You have already reviewed this course", 409);
 
-    const review = await Review.create({ userId: user.id, courseId, rating: input.rating, comment: input.comment });
-    await recomputeRating(courseId, course.ratingSum + input.rating, course.ratingCount + 1);
+    let review;
+    try {
+      review = await Review.create({ userId: user.id, courseId, rating: input.rating, comment: input.comment });
+    } catch (error) {
+      if (typeof error === "object" && error !== null && "code" in error && (error as { code?: number }).code === 11000) throw new AppError("REVIEW_ALREADY_EXISTS", "You have already reviewed this course", 409);
+      throw error;
+    }
+    await applyRatingDelta(courseId, input.rating, 1);
     return review;
   },
 
@@ -57,7 +72,7 @@ export const reviewService = {
     review.rating = input.rating;
     review.comment = input.comment;
     await review.save();
-    await recomputeRating(review.courseId.toString(), course.ratingSum + ratingDelta, course.ratingCount);
+    await applyRatingDelta(review.courseId.toString(), ratingDelta, 0);
     return review;
   },
 
@@ -69,6 +84,6 @@ export const reviewService = {
     requireOwnerOrAdmin(user, review.userId.toString());
     const course = await ensureCourseExists(review.courseId.toString());
     await review.deleteOne();
-    await recomputeRating(review.courseId.toString(), course.ratingSum - review.rating, Math.max(0, course.ratingCount - 1));
+    await applyRatingDelta(review.courseId.toString(), -review.rating, -1);
   },
 };
