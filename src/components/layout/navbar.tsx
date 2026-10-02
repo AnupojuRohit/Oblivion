@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Moon, Sun, Menu, X, ChevronDown, BookOpen, Sparkles, LayoutDashboard, LogOut, User } from "lucide-react";
@@ -21,9 +22,10 @@ export function Navbar() {
   const [user, setUser] = useState<NavUser>(null);
   const { resolvedTheme, setTheme } = useTheme();
   const pathname = usePathname();
+  const router = useRouter();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => { const timer = window.setTimeout(() => setMounted(true), 0); return () => window.clearTimeout(timer); }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -51,16 +53,11 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  useEffect(() => {
-    setMobileOpen(false);
-    setUserMenuOpen(false);
-  }, [pathname]);
-
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
     setUser(null);
     setUserMenuOpen(false);
-    window.location.href = "/";
+    router.push("/");
   };
 
   return (
