@@ -68,7 +68,7 @@ export async function searchYoutube(query: string, level?: string): Promise<Vide
       const id = item.id?.videoId;
       if (id && item.snippet) searchResults.set(id, item.snippet);
     }
-  }
+  }));
 
   const ids = [...searchResults.keys()].slice(0, 50);
   if (!ids.length) return [];
