@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:fast": "next start",
+    "preview": "npm run build && next start",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
