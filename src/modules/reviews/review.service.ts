@@ -67,7 +67,7 @@ export const reviewService = {
     const review = await Review.findById(reviewId);
     if (!review) throw new AppError("REVIEW_NOT_FOUND", "Review not found", 404);
     requireOwnerOrAdmin(user, review.userId.toString());
-    const course = await ensureCourseExists(review.courseId.toString());
+    await ensureCourseExists(review.courseId.toString());
     const ratingDelta = input.rating - review.rating;
     review.rating = input.rating;
     review.comment = input.comment;
@@ -82,7 +82,7 @@ export const reviewService = {
     const review = await Review.findById(reviewId);
     if (!review) throw new AppError("REVIEW_NOT_FOUND", "Review not found", 404);
     requireOwnerOrAdmin(user, review.userId.toString());
-    const course = await ensureCourseExists(review.courseId.toString());
+    await ensureCourseExists(review.courseId.toString());
     await review.deleteOne();
     await applyRatingDelta(review.courseId.toString(), -review.rating, -1);
   },
