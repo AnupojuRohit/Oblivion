@@ -2,12 +2,8 @@ import Link from "next/link";
 import { BarChart3, BookOpen, LayoutDashboard, PlusCircle, ReceiptText, Settings, Sparkles } from "lucide-react";
 
 const instructorItems = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/courses", label: "My courses", icon: BookOpen },
-  { href: "/dashboard/courses/new", label: "Create course", icon: PlusCircle },
-  { href: "/dashboard/orders", label: "Orders", icon: ReceiptText },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/dashboard/profile", label: "Profile", icon: Settings },
+  { href: "/dashboard/courses/new", label: "Upload course", icon: PlusCircle },
+  { href: "/dashboard/courses", label: "My uploaded courses", icon: BookOpen },
 ];
 
 const studentItems = [
