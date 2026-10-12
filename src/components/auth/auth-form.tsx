@@ -46,6 +46,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         return;
       }
 
+      window.dispatchEvent(new Event("oblivion:auth-changed"));
       router.replace("/dashboard");
       router.refresh();
     } catch (requestError) {
