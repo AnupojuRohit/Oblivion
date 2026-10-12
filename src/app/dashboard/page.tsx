@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { BookOpen, IndianRupee, Star, Users } from "lucide-react";
 import { isInstructorRole, requireUserPage } from "@/lib/auth/helpers";
 import { courseService } from "@/modules/courses/course.service";
@@ -14,6 +15,8 @@ const metric = (label: string, value: string | number, Icon: typeof BookOpen) =>
 
 export default async function DashboardPage() {
   const user = await requireUserPage();
+
+  if (user.role === "INSTRUCTOR") redirect("/dashboard/courses/new");
 
   if (!isInstructorRole(user.role)) {
     let enrollments: Awaited<ReturnType<typeof enrollmentService.getForUser>> = [];
