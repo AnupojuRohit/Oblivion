@@ -1,4 +1,34 @@
 import { AppError } from "@/lib/errors/app-error";
 import type { PublicUser } from "@/modules/auth/auth.types";
-export function canEditCourse(user: PublicUser, instructorId: string) { return user.role === "ADMIN" || (user.role === "INSTRUCTOR" && user.id === instructorId); }
-export function assertCourseOwner(user: PublicUser, instructorId: string) { if (!canEditCourse(user, instructorId)) throw new AppError("FORBIDDEN", "You do not have permission to modify this course", 403); }
+
+/**
+ * Keep course authorization rules in one place so every course mutation
+ * applies the same ownership policy.
+ */
+export function canEditCourse(
+  user: PublicUser,
+  instructorId: string,
+): boolean {
+  // Administrators can moderate courses; instructors can edit only their own.
+  return (
+    user.role === "ADMIN" ||
+    (user.role === "INSTRUCTOR" && user.id === instructorId)
+  );
+}
+
+/**
+ * Use this assertion in service methods before changing a course.
+ * A UI restriction alone is not authorization: API requests can be sent directly.
+ */
+export function assertCourseOwner(
+  user: PublicUser,
+  instructorId: string,
+): void {
+  if (!canEditCourse(user, instructorId)) {
+    throw new AppError(
+      "FORBIDDEN",
+      "You do not have permission to modify this course",
+      403,
+    );
+  }
+}

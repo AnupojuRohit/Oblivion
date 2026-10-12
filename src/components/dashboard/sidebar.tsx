@@ -2,6 +2,11 @@ import Link from "next/link";
 import { BarChart3, BookOpen, LayoutDashboard, PlusCircle, ReceiptText, Settings, Sparkles } from "lucide-react";
 
 const instructorItems = [
+  { href: "/dashboard/courses/new", label: "Upload course", icon: PlusCircle },
+  { href: "/dashboard/courses", label: "My uploaded courses", icon: BookOpen },
+];
+
+const adminItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/courses", label: "My courses", icon: BookOpen },
   { href: "/dashboard/courses/new", label: "Create course", icon: PlusCircle },
@@ -17,8 +22,8 @@ const studentItems = [
   { href: "/dashboard/profile", label: "Profile", icon: Settings },
 ];
 
-export function DashboardSidebar({ isInstructor }: { isInstructor: boolean }) {
-  const items = isInstructor ? instructorItems : studentItems;
+export function DashboardSidebar({ isInstructor, isAdmin = false }: { isInstructor: boolean; isAdmin?: boolean }) {
+  const items = isInstructor ? instructorItems : isAdmin ? adminItems : studentItems;
 
   return (
     <aside className="border-b bg-[var(--surface)] md:min-h-[calc(100vh-4rem)] md:w-56 md:border-b-0 md:border-r">
