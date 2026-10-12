@@ -1,5 +1,5 @@
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
-import { isInstructorRole, requireUserPage } from "@/lib/auth/helpers";
+import { requireUserPage } from "@/lib/auth/helpers";
 
 export default async function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const user = await requireUserPage();
