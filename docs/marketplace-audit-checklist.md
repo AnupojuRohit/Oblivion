@@ -14,11 +14,17 @@ Repository: https://github.com/AnupojuRohit/Oblivion
 - [ ] Course publishing requires title, description, category, pricing, and at least one section/lesson. Trace each curriculum mutation and ensure lessonCount stays correct.
 - [ ] An instructor application route exists at src/app/api/instructor/apply/route.ts, which accepts STUDENT accounts and persists applications as PENDING. Do not bypass the existing approval process.
 
+## Current instructor UX scope
+For accounts whose role is INSTRUCTOR, the workspace should expose only two course-management actions: Upload course and My uploaded courses. Public course discovery/AI Finder and student profile/dashboard shortcuts are hidden from instructor navigation. Public visibility of uploaded courses is explicitly deferred until the private upload-and-manage flow works end-to-end.
+
 ## Work remaining
 - [ ] Inspect order create/verify and webhook routes; verify signature checks, idempotency, server-computed amount, and enrollment creation only after verified payment.
 - [ ] Inspect storage upload and media delivery code; ensure uploaded video bytes are really stored, persisted, playable, and access-controlled.
 - [ ] Inspect admin application approval action and ensure role change is server-authorized.
-- [ ] Fix auth state synchronization in navbar and student instructor-application link. Preserve existing design and architecture.
+- [x] Fix auth state synchronization in navbar and point signed-in students to the existing /instructor/apply route.
+- [x] Reduce instructor navigation to only Upload course and My uploaded courses; send an instructor landing on /dashboard directly to /dashboard/courses/new.
+- [x] Keep instructor dashboard out of the student browsing/AI Finder/profile navigation.
+- [ ] Confirm product decision whether new instructor access should continue requiring administrator approval. Current behavior preserves the existing approval flow.
 - [ ] Add/adjust tests and run lint, typecheck, test suite, and production build; report real command outcomes.
 - [ ] Verify separate student/instructor end-to-end journeys and regression-test AI Finder, certificates, saved resources, dashboards.
 
