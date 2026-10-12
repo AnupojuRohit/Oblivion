@@ -1,32 +1,47 @@
-# Oblivion GitHub audit task — working checklist
+# Oblivion engineering cleanup checklist
 
 Repository: https://github.com/AnupojuRohit/Oblivion
+Working branch: `fix/marketplace-auth-audit`
 
-## Confirmed by source inspection (main branch, 2026-10-12)
+## Completed in this branch
 
-- [ ] Navbar (src/components/layout/navbar.tsx) fetches /api/auth/me only once in a mount effect and keeps auth state locally. Review how successful login/registration updates the navbar without a full reload.
-- [ ] Desktop navbar shows “Become Instructor” only when there is no user. Signed-in students should be able to access the existing application flow; check its status (pending/approved/rejected) and display the appropriate action.
-- [ ] Logout handler ignores the response status and has no error handling; make its UI state change conditional on a completed logout request or show an actionable error.
-- [ ] User persistence is implemented using Mongoose User in collection users; passwordHash is select:false and authService hashes passwords with bcryptjs (12 rounds). Sessions are stored in the sessions collection, use random tokens in an HTTP-only cookie named learnhub_session, and store only SHA-256 hashes server-side.
-- [ ] Course collection is courses; instructor ownership is checked in course service. Public course listing filters status: PUBLISHED.
-- [ ] Free direct enrollment endpoint rejects non-zero price. Trace src/modules/orders/order.service.ts and order verification/webhook fulfillment before concluding if paid flow is complete.
-- [ ] Dashboard catches database errors and substitutes empty enrollments / fallback state; make sure genuine database errors aren't misrepresented as “no enrollments.”
-- [ ] Course publishing requires title, description, category, pricing, and at least one section/lesson. Trace each curriculum mutation and ensure lessonCount stays correct.
-- [ ] An instructor application route exists at src/app/api/instructor/apply/route.ts, which accepts STUDENT accounts and persists applications as PENDING. Do not bypass the existing approval process.
+- [x] Focus instructor workspace on Upload course and My uploaded courses.
+- [x] Keep the existing instructor application and administrator approval flow.
+- [x] Make the shared application error type easier to read and explain.
+- [x] Format and document the auth service, session helpers, and public-user mapping.
+- [x] Format and document course permissions, course persistence schema, and course service.
+- [x] Format and document payment order creation, payment verification, webhook handling, and refunds.
+- [x] Make course API route handling and instructor application validation more explicit.
+- [x] Document the project architecture, engineering decisions, core flows, and faculty Q&A in `docs/engineering-guide.md`.
+- [x] Align the README with the current architecture and instructor workspace scope.
+- [x] Add unit coverage for instructor ownership and administrator permissions.
 
-## Current instructor UX scope
-For accounts whose role is INSTRUCTOR, the workspace should expose only two course-management actions: Upload course and My uploaded courses. Public course discovery/AI Finder and student profile/dashboard shortcuts are hidden from instructor navigation. Public visibility of uploaded courses is explicitly deferred until the private upload-and-manage flow works end-to-end.
+## Verification status
 
-## Work remaining
-- [ ] Inspect order create/verify and webhook routes; verify signature checks, idempotency, server-computed amount, and enrollment creation only after verified payment.
-- [ ] Inspect storage upload and media delivery code; ensure uploaded video bytes are really stored, persisted, playable, and access-controlled.
-- [ ] Inspect admin application approval action and ensure role change is server-authorized.
-- [x] Fix auth state synchronization in navbar and point signed-in students to the existing /instructor/apply route.
-- [x] Reduce instructor navigation to only Upload course and My uploaded courses; send an instructor landing on /dashboard directly to /dashboard/courses/new.
-- [x] Keep instructor dashboard out of the student browsing/AI Finder/profile navigation.
-- [ ] Confirm product decision whether new instructor access should continue requiring administrator approval. Current behavior preserves the existing approval flow.
-- [ ] Add/adjust tests and run lint, typecheck, test suite, and production build; report real command outcomes.
-- [ ] Verify separate student/instructor end-to-end journeys and regression-test AI Finder, certificates, saved resources, dashboards.
+The changes were reviewed through GitHub source inspection. This connector session cannot execute the repository's npm scripts locally, so the following are **not yet verified for this branch**:
 
-## Safety and scope
-Do not overwrite user work or change main directly. Keep the changes on fix/marketplace-auth-audit. Do not reveal environment secrets, create fake payment success, or claim tests were run unless they actually were. Record files changed, root causes, test output, and unresolved setup requirements.
+- [ ] `npm run lint`
+- [ ] `npm run typecheck`
+- [ ] `npm test`
+- [ ] `npm run build`
+- [ ] Student login/logout browser flow.
+- [ ] Instructor application and administrator approval flow.
+- [ ] Instructor upload/list/edit ownership flow.
+- [ ] Payment checkout, verified payment, webhook retry, and refund with Razorpay test credentials.
+- [ ] Storage and media upload/playback with configured storage credentials.
+- [ ] AI Finder integration with configured YouTube and Gemini credentials.
+
+## Known engineering checks to retain
+
+- API routes should validate untrusted input with Zod and use the shared response envelope.
+- Sensitive actions must authenticate and authorize on the server; hiding a link is not a security boundary.
+- Course mutation paths must call ownership checks before saving changes.
+- The public catalogue must filter to published courses.
+- Payment amounts must come from stored course prices, and enrollment must follow verified payment.
+- Webhook retries need duplicate-event handling.
+- Database failures should not be presented as a successful empty result.
+- Never commit `.env.local`, API keys, or provider secrets.
+
+## Scope notes
+
+The instructor workspace currently focuses on course upload and the instructor's own course list. Public discovery/visibility is a later phase and should not be claimed as verified merely because a course can be saved as a draft. Preserve the administrator approval flow unless the product decision explicitly changes.
