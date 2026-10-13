@@ -9,10 +9,10 @@ export function canEditCourse(
   user: PublicUser,
   instructorId: string,
 ): boolean {
-  // Administrators can moderate courses; instructors can edit only their own.
+  // Administrators can moderate courses; creators can edit their own courses.
   return (
     user.role === "ADMIN" ||
-    (user.role === "INSTRUCTOR" && user.id === instructorId)
+    user.id === instructorId
   );
 }
 

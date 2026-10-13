@@ -110,14 +110,16 @@ export function Navbar() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-1" aria-label="Primary navigation">
-            {user?.role !== "INSTRUCTOR" && navLinks.map(({ href, label }) => (
+            {navLinks.map(({ href, label }) => (
               <Link key={href} href={href} className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-150 ${pathname === href || pathname.startsWith(href + "/") ? "text-[var(--fg)]" : "text-[var(--fg-tertiary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)]"}`}>
                 {label}
               </Link>
             ))}
-            {authResolved && !user && <Link href="/register" className="px-3 py-1.5 text-sm font-medium rounded-md text-[var(--fg-tertiary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)]">Become Instructor</Link>}
-            {authResolved && user?.role === "STUDENT" && <Link href="/instructor/apply" className="px-3 py-1.5 text-sm font-medium rounded-md text-[var(--fg-tertiary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)]">Become Instructor</Link>}
-            {authResolved && user?.role === "INSTRUCTOR" && <><Link href="/dashboard/courses/new" className="px-3 py-1.5 text-sm font-medium rounded-md text-[var(--fg-tertiary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)]">Upload course</Link><Link href="/dashboard/courses" className="px-3 py-1.5 text-sm font-medium rounded-md text-[var(--fg-tertiary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)]">My uploaded courses</Link></>}
+            {authResolved && user && (
+              <Link href="/dashboard/courses/new" className="px-3 py-1.5 text-sm font-medium rounded-md text-[var(--fg-tertiary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)] inline-flex items-center gap-1.5">
+                <BookOpen className="size-3.5" />Upload course
+              </Link>
+            )}
           </nav>
 
           <div className="flex items-center gap-2">
@@ -134,8 +136,12 @@ export function Navbar() {
                 </button>
                 {userMenuOpen && (
                   <div className="absolute right-0 top-full mt-1.5 w-52 card shadow-[var(--shadow-xl)] py-1 z-50">
-                    <div className="px-3 py-2 border-b border-[var(--border)]"><p className="text-xs font-semibold text-[var(--fg)]">{user.name}</p><p className="text-xs text-[var(--fg-quaternary)] uppercase tracking-wider mt-0.5">{user.role}</p></div>
-                    {user.role === "INSTRUCTOR" ? <><Link href="/dashboard/courses/new" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)]"><BookOpen className="size-3.5" />Upload course</Link><Link href="/dashboard/courses" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)]"><LayoutDashboard className="size-3.5" />My uploaded courses</Link></> : <><Link href="/dashboard" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)]"><LayoutDashboard className="size-3.5" />Dashboard</Link><Link href="/dashboard/courses" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)]"><BookOpen className="size-3.5" />My Courses</Link><Link href="/finder" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)]"><Sparkles className="size-3.5" />AI Finder</Link><Link href="/dashboard/profile" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)]"><User className="size-3.5" />Profile</Link></>}
+                    <div className="px-3 py-2 border-b border-[var(--border)]"><p className="text-xs font-semibold text-[var(--fg)]">{user.name}</p><p className="text-xs text-[var(--fg-quaternary)] mt-0.5">Account</p></div>
+                    <Link href="/dashboard" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)]"><LayoutDashboard className="size-3.5" />Dashboard</Link>
+                    <Link href="/dashboard/courses/new" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)]"><BookOpen className="size-3.5" />Upload course</Link>
+                    <Link href="/dashboard/courses" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)]"><LayoutDashboard className="size-3.5" />My uploaded courses</Link>
+                    <Link href="/finder" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)]"><Sparkles className="size-3.5" />AI Finder</Link>
+                    <Link href="/dashboard/profile" className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)]"><User className="size-3.5" />Profile</Link>
                     <button disabled={loggingOut} onClick={handleLogout} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--fg-quaternary)] hover:text-[var(--fg)] hover:bg-[var(--bg-secondary)] disabled:opacity-50"><LogOut className="size-3.5" />{loggingOut ? "Signing out…" : "Sign out"}</button>
                   </div>
                 )}
@@ -153,8 +159,18 @@ export function Navbar() {
         {mobileOpen && (
           <div className="md:hidden border-t border-[var(--border)] glass">
             <nav className="px-5 py-4 space-y-1">
-              {user?.role !== "INSTRUCTOR" && navLinks.map(({ href, label }) => <Link key={href} href={href} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-md text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)]">{label}</Link>)}
-              {user ? <>{user.role === "INSTRUCTOR" ? <><Link href="/dashboard/courses/new" className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md"><BookOpen className="size-4" />Upload course</Link><Link href="/dashboard/courses" className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md"><LayoutDashboard className="size-4" />My uploaded courses</Link></> : <><Link href="/dashboard" className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md"><LayoutDashboard className="size-4" />Dashboard</Link>{user.role === "STUDENT" && <Link href="/instructor/apply" className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md"><BookOpen className="size-4" />Become Instructor</Link>}</>}<button disabled={loggingOut} onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md disabled:opacity-50"><LogOut className="size-4" />{loggingOut ? "Signing out…" : "Sign out"}</button></> : authResolved ? <div className="pt-2 flex flex-col gap-2"><Link href="/login" className="btn btn-secondary w-full justify-center">Sign in</Link><Link href="/register" className="btn btn-primary w-full justify-center">Get started</Link></div> : <p className="px-3 py-2 text-sm text-[var(--fg-quaternary)]">Checking account…</p>}
+              {navLinks.map(({ href, label }) => <Link key={href} href={href} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-md text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)]">{label}</Link>)}
+              {user ? (
+                <>
+                  <Link href="/dashboard" className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)]"><LayoutDashboard className="size-4" />Dashboard</Link>
+                  <Link href="/dashboard/courses/new" className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)]"><BookOpen className="size-4" />Upload course</Link>
+                  <Link href="/dashboard/courses" className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)]"><LayoutDashboard className="size-4" />My uploaded courses</Link>
+                  <Link href="/dashboard/profile" className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md text-[var(--fg-secondary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)]"><User className="size-4" />Profile</Link>
+                  <button disabled={loggingOut} onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-md disabled:opacity-50 text-[var(--fg-quaternary)] hover:text-[var(--fg)] hover:bg-[var(--bg-tertiary)]"><LogOut className="size-4" />{loggingOut ? "Signing out…" : "Sign out"}</button>
+                </>
+              ) : authResolved ? (
+                <div className="pt-2 flex flex-col gap-2"><Link href="/login" className="btn btn-secondary w-full justify-center">Sign in</Link><Link href="/register" className="btn btn-primary w-full justify-center">Get started</Link></div>
+              ) : <p className="px-3 py-2 text-sm text-[var(--fg-quaternary)]">Checking account…</p>}
             </nav>
           </div>
         )}

@@ -28,11 +28,18 @@ describe("course permissions", () => {
     }
   });
 
-  it("does not allow students to edit instructor courses", () => {
-    const student: PublicUser = { ...instructor, role: "STUDENT" };
+  it("does not allow users to edit another creator's course", () => {
+    const student: PublicUser = { id: "student-999", name: "Student", email: "student@example.com", role: "STUDENT" };
 
     expect(canEditCourse(student, instructor.id)).toBe(false);
     expect(() => assertCourseOwner(student, instructor.id)).toThrow(AppError);
+  });
+
+  it("allows regular users to edit their own course", () => {
+    const regularUser: PublicUser = { id: "user-888", name: "User", email: "user@example.com", role: "STUDENT" };
+
+    expect(canEditCourse(regularUser, "user-888")).toBe(true);
+    expect(() => assertCourseOwner(regularUser, "user-888")).not.toThrow();
   });
 
   it("allows administrators to moderate any course", () => {

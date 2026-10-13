@@ -48,7 +48,13 @@ export default async function LearnPage({ params }: { params: Promise<{ courseId
       <LearningPlayer
         course={course}
         lessons={lessons}
-        resources={resources.map((resource) => ({ id: resource._id.toString(), name: resource.name, lessonId: resource.lessonId.toString(), mimeType: resource.mimeType }))}
+        resources={resources.map((resource) => ({
+          id: resource._id.toString(),
+          name: resource.name,
+          lessonId: resource.lessonId ? resource.lessonId.toString() : "",
+          mimeType: resource.mimeType,
+          fileUrl: resource.fileUrl,
+        }))}
         activeLessonId={activeLessonId}
         progress={enrollment?.progressPercent ?? 0}
         lastPositionSeconds={enrollment?.lastPositionSeconds ?? 0}

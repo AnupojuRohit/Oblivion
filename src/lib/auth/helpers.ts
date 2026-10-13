@@ -37,7 +37,5 @@ export async function requireUserPage(): Promise<PublicUser> {
 }
 
 export async function requireInstructorPage(): Promise<PublicUser> {
-  const user = await requireUserPage();
-  if (!isInstructorRole(user.role)) redirect("/dashboard");
-  return user;
+  return requireUserPage();
 }

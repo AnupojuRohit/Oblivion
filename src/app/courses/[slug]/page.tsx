@@ -8,6 +8,8 @@ import { reviewService } from "@/modules/reviews/review.service";
 import { ReviewForm } from "@/components/courses/review-form";
 import { EnrollmentButton } from "@/components/courses/enrollment-button";
 
+import { CourseResource } from "@/modules/resources/resource.model";
+
 export default async function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUser();
   const { slug } = await params;
@@ -20,9 +22,10 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
   }
 
   const enrolled = Boolean(user && await enrollmentService.hasEnrollment(user.id, course.id));
-  const [reviews, myReview] = await Promise.all([
+  const [reviews, myReview, courseResources] = await Promise.all([
     reviewService.listForCourse(course.id),
     user ? reviewService.getUserReview(course.id, user.id) : Promise.resolve(null),
+    CourseResource.find({ courseId: course.id }).select("name mimeType sizeBytes").lean(),
   ]);
 
   return (
@@ -44,6 +47,11 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
           <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Course details and preview lessons are available below. Enrollment unlocks the full learning player.</p>
           {enrolled ? (
             <Link href={"/learn/" + course.id} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white"><PlayCircle className="size-4" />Open course player</Link>
+          ) : user && user.id === course.instructorId ? (
+            <div className="mt-5 space-y-2">
+              <Link href={"/learn/" + course.id} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white"><PlayCircle className="size-4" />Open course player</Link>
+              <Link href={"/dashboard/courses/" + course.id + "/edit"} className="inline-flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5">Edit course & lessons</Link>
+            </div>
           ) : user ? (
             <EnrollmentButton courseId={course.id} price={course.price} />
           ) : (
@@ -54,23 +62,45 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
 
       <div className="mt-14 grid gap-10 lg:grid-cols-[1.35fr_0.65fr]">
         <div className="max-w-3xl">
-          <h2 className="text-2xl font-bold">Course curriculum</h2>
-          <div className="mt-5 divide-y rounded-xl border bg-[var(--surface)]">
-            {course.sections.map((section) => (
-              <div key={section.id} className="p-5">
-                <h3 className="font-semibold">{section.position}. {section.title}</h3>
-                {section.description ? <p className="mt-1 text-sm text-[var(--muted)]">{section.description}</p> : null}
-                <ul className="mt-4 space-y-3">
-                  {section.lessons.map((lesson) => (
-                    <li key={lesson.id} className="flex items-center justify-between gap-4 rounded-lg border bg-background px-4 py-3 text-sm">
-                      <span className="flex items-center gap-2"><span>{lesson.position}.</span>{lesson.title}</span>
-                      <span className="inline-flex items-center gap-1 text-[var(--muted)]">{lesson.isPreview ? <PlayCircle className="size-4 text-indigo-600" /> : <Lock className="size-4" />}{lesson.isPreview ? "Preview" : "Locked"}</span>
-                    </li>
-                  ))}
-                </ul>
+          {course.sections.length > 0 ? (
+            <>
+              <h2 className="text-2xl font-bold">Course curriculum</h2>
+              <div className="mt-5 divide-y rounded-xl border bg-[var(--surface)]">
+                {course.sections.map((section) => (
+                  <div key={section.id} className="p-5">
+                    <h3 className="font-semibold">{section.position}. {section.title}</h3>
+                    {section.description ? <p className="mt-1 text-sm text-[var(--muted)]">{section.description}</p> : null}
+                    <ul className="mt-4 space-y-3">
+                      {section.lessons.map((lesson) => (
+                        <li key={lesson.id} className="flex items-center justify-between gap-4 rounded-lg border bg-background px-4 py-3 text-sm">
+                          <span className="flex items-center gap-2"><span>{lesson.position}.</span>{lesson.title}</span>
+                          <span className="inline-flex items-center gap-1 text-[var(--muted)]">{lesson.isPreview ? <PlayCircle className="size-4 text-indigo-600" /> : <Lock className="size-4" />}{lesson.isPreview ? "Preview" : "Locked"}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold">Course materials & resources</h2>
+              <div className="mt-5 divide-y rounded-xl border bg-[var(--surface)]">
+                {courseResources.length ? (
+                  courseResources.map((res: any) => (
+                    <div key={res._id.toString()} className="flex items-center justify-between p-4 text-sm">
+                      <span className="font-medium">{res.name}</span>
+                      <span className="text-xs text-[var(--muted)]">{(res.sizeBytes / (1024 * 1024)).toFixed(1)} MB</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="p-5 text-sm text-[var(--muted)]">
+                    This course includes access to downloadable materials and videos upon enrollment.
+                  </p>
+                )}
+              </div>
+            </>
+          )}
 
           <section className="mt-12 rounded-2xl border bg-[var(--surface)] p-6">
             <div className="flex items-center justify-between gap-3">

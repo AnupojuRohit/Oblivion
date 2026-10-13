@@ -5,7 +5,7 @@ const footerLinks = {
   Platform: [
     { label: "Courses", href: "/courses" },
     { label: "AI Finder", href: "/finder" },
-    { label: "Become Instructor", href: "/register" },
+    { label: "Upload Course", href: "/dashboard/courses/new" },
     { label: "Dashboard", href: "/dashboard" },
   ],
   Company: [

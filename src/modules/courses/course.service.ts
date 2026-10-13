@@ -92,10 +92,6 @@ type InstructorCourse = {
 async function getInstructorCourses(
   user: PublicUser,
 ): Promise<InstructorCourse[]> {
-  if (user.role !== "INSTRUCTOR") {
-    throw new AppError("FORBIDDEN", "Instructor access is required", 403);
-  }
-
   await connectToDatabase();
 
   // Filter in MongoDB so an instructor can only receive their own courses.
@@ -186,14 +182,6 @@ export const courseService = {
       currency: string;
     },
   ) {
-    if (user.role !== "INSTRUCTOR") {
-      throw new AppError(
-        "FORBIDDEN",
-        "Only instructors can create courses",
-        403,
-      );
-    }
-
     await connectToDatabase();
 
     if (!(await categoryService.exists(input.categoryId))) {
@@ -276,13 +264,11 @@ export const courseService = {
       Boolean(course.description) &&
       Boolean(course.categoryId) &&
       course.price !== undefined;
-    const hasCurriculum =
-      course.sections.length > 0 && course.lessonCount > 0;
 
-    if (!hasRequiredDetails || !hasCurriculum) {
+    if (!hasRequiredDetails) {
       throw new AppError(
         "COURSE_NOT_READY",
-        "A published course needs complete details, a category, pricing, and at least one section and lesson",
+        "A published course needs complete details, a category, and pricing",
         400,
       );
     }

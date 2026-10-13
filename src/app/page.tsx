@@ -416,7 +416,7 @@ export default function LandingPage() {
             </Link>
           </motion.div>
 
-          {/* Become instructor link */}
+          {/* Upload course link */}
           <motion.div
             className="mt-5"
             initial={{ opacity: 0 }}
@@ -424,10 +424,10 @@ export default function LandingPage() {
             transition={{ duration: 0.6, delay: 2.5 }}
           >
             <Link
-              href="/instructor/apply"
+              href="/dashboard/courses/new"
               className="text-xs text-[var(--fg-quaternary)] hover:text-[var(--fg-secondary)] inline-flex items-center gap-1 transition-colors"
             >
-              Become an instructor <ArrowUpRight className="size-3" />
+              Upload your own course <ArrowUpRight className="size-3" />
             </Link>
           </motion.div>
         </motion.div>
@@ -568,7 +568,7 @@ export default function LandingPage() {
               <Link href="/courses" className="btn btn-primary text-sm gap-2">
                 Explore Courses <ArrowRight className="size-4" />
               </Link>
-              <Link href="/instructor/apply" className="btn btn-secondary text-sm gap-2">
+              <Link href="/register" className="btn btn-secondary text-sm gap-2">
                 Create Account <ChevronRight className="size-4" />
               </Link>
             </div>
